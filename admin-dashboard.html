@@ -156,6 +156,32 @@
       }
 
       message.textContent = data.length + " commande(s) trouvée(s).";
+      
+// Calcul des statistiques
+const totalOrders = data.length;
+
+const paidOrders = data.filter(
+  order => order.payment_status === "paid"
+).length;
+
+const pendingOrders = data.filter(
+  order => order.payment_status === "pending"
+).length;
+
+const revenue = data
+  .filter(order => order.payment_status === "paid")
+  .reduce((sum, order) => sum + Number(order.total || 0), 0);
+
+// Affichage des statistiques
+document.getElementById("totalOrders").textContent = totalOrders;
+
+document.getElementById("paidOrders").textContent = paidOrders;
+
+document.getElementById("pendingOrders").textContent = pendingOrders;
+
+document.getElementById("revenue").textContent =
+  revenue.toLocaleString("fr-FR") + " FCFA";
+
 
      
 data.forEach(order => {
