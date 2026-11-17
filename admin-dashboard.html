@@ -1,1 +1,147 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tableau de bord - SAMIRA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f3ef;
+      margin: 0;
+      padding: 20px;
+      color: #333;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    h1 { color: #8b5e45; }
+    button {
+      background: #8b5e45;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .card {
+      background: white;
+      padding: 18px;
+      margin: 20px 0;
+      border-radius: 10px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 850px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+    th { color: #8b5e45; }
+    #message { margin: 20px 0; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>SAMIRA - Administration</h1>
+    <button id="logout">Déconnexion</button>
+  </header>
+
+  <div class="card">
+    <h2>Mes commandes</h2>
+    <p id="message">Chargement des commandes...</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Référence</th>
+          <th>Client</th>
+          <th>Téléphone</th>
+          <th>Montant</th>
+          <th>Paiement</th>
+          <th>Statut</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="ordersList"></tbody>
+    </table>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <script>
+    const supabaseClient = window.supabase.createClient(
+      "https://ouksbotecvbpwsgeapzs.supabase.co",
+      "sb_publishable_wfY3c4mTOU85xmIrNyD5_g_tLUbUjlU"
+    );
+
+    async function loadOrders() {
+      const message = document.getElementById("message");
+      const ordersList = document.getElementById("ordersList");
+
+      const { data: sessionData } =
+        await supabaseClient.auth.getSession();
+
+      if (!sessionData.session) {
+        window.location.href = "/admin.html";
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("orders")
+        .select("id, customer_name, customer_phone, total, payment_status, order_status, created_at")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        message.textContent =
+          "Impossible de charger les commandes : " + error.message;
+        return;
+      }
+
+      message.textContent = data.length + " commande(s) trouvée(s).";
+
+      data.forEach(order => {
+        const row = document.createElement("tr");
+
+        const values = [
+          order.id,
+          order.customer_name,
+          order.customer_phone,
+          Number(order.total).toLocaleString("fr-FR") + " FCFA",
+          order.payment_status,
+          order.order_status,
+          new Date(order.created_at).toLocaleDateString("fr-FR")
+        ];
+
+        values.forEach(value => {
+          const cell = document.createElement("td");
+          cell.textContent = value ?? "";
+          row.appendChild(cell);
+        });
+
+        ordersList.appendChild(row);
+      });
+    }
+
+    document.getElementById("logout")
+      .addEventListener("click", async () => {
+        await supabaseClient.auth.signOut();
+        window.location.href = "/admin.html";
+      });
+
+    loadOrders();
+  </script>
+
+</body>
+</html>
+
