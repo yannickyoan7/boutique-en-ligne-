@@ -213,43 +213,110 @@ $("#countrySelect").onchange = e => {
   $("#paymentSelect").value = international ? "Paiement international à configurer" : "Airtel Money";
   $("#paymentSelect").querySelector('option[value="Paiement international à configurer"]').disabled = false;
 };
-$("#checkoutForm").onsubmit = e => {
+$("#checkoutForm").onsubmit = async e => {
   e.preventDefault();
   if (!cart.length) return;
-  const form = new FormData(e.currentTarget);
-  const order = {
-    reference: "SAM-" + Date.now().toString().slice(-8),
-    createdAt: new Date().toISOString(),
-    customer: Object.fromEntries(form.entries()),
-    items: cart.map(({id,name,price,qty}) => ({id,name,price,qty})),
-    total: cart.reduce((n,x) => n + x.price * x.qty, 0),
-    status: "En attente de paiement — intégration marchand requise"
-  };
-  const orders = JSON.parse(localStorage.getItem("samira_orders") || "[]");
-  orders.push(order);
-  localStorage.setItem("samira_orders", JSON.stringify(orders));
-  const lines = order.items.map(item => `- ${item.name} x${item.qty} : ${money(item.price * item.qty)}`).join("\n");
-  const message = [
-    "Bonjour Samira ! Je souhaite confirmer cette commande sur SAMIRA Beauty.",
-    `Référence : ${order.reference}`,
-    `Nom : ${order.customer.name || ""}`,
-    `Téléphone : ${order.customer.phone || ""}`,
-    `E-mail : ${order.customer.email || ""}`,
-    `Livraison : ${order.customer.address || ""}, ${order.customer.country || ""}`,
-    `Paiement choisi : ${order.customer.payment || ""}`,
-    "Articles :",
-    lines,
-    `Total provisoire : ${money(order.total)}`,
-    "Merci de me confirmer la disponibilité et les modalités de paiement. Je comprends qu'aucun paiement n'a encore été effectué."
-  ].join("\n");
-  const whatsappUrl = `https://wa.me/24107877070?text=${encodeURIComponent(message)}`;
-  window.open(whatsappUrl, "_blank", "noopener,noreferrer");
-  $("#checkoutModal").classList.add("hidden");
-  $("#confirmationText").textContent = `Votre référence est ${order.reference}. WhatsApp s'est ouvert avec le récapitulatif : appuyez sur Envoyer pour transmettre votre commande à Samira. Une copie locale est aussi conservée sur cet appareil.`;
-  $("#confirmationModal").classList.remove("hidden");
-  cart = [];
-  saveCart();
-  e.currentTarget.reset();
+
+  const client = window.samiraSupabase;
+  if (!client) {
+    showToast("Connexion à Supabase indisponible. Réessayez.");
+    return;
+  }
+
+  const submitButton = e.currentTarget.querySelector('button[type="submit"]');
+  const originalButtonText = submitButton ? submitButton.textContent : "";
+  if (submitButton) {
+    submitButton.disabled = true;
+    submitButton.textContent = "Enregistrement…";
+  }
+
+  // Ouvre une fenêtre pendant le clic utilisateur : certains navigateurs bloquent
+  // les fenêtres ouvertes après une requête réseau asynchrone.
+  const whatsappWindow = window.open("about:blank", "_blank");
+
+  try {
+    const form = new FormData(e.currentTarget);
+    const customer = Object.fromEntries(form.entries());
+    const orderReference = "SAM-" + Date.now().toString().slice(-8);
+    const orderTotal = cart.reduce((n, item) => n + Number(item.price) * Number(item.qty), 0);
+    const orderItems = cart.map(({id, name, price, qty}) => ({
+      product_id: id,
+      product_name: name,
+      quantity: Number(qty),
+      unit_price: Number(price)
+    }));
+
+    // Enregistrer d'abord la commande et récupérer son UUID Supabase.
+    const { data: savedOrder, error: orderError } = await client
+      .from("orders")
+      .insert({
+        customer_name: customer.name,
+        customer_email: customer.email,
+        customer_phone: customer.phone,
+        delivery_address: customer.address,
+        delivery_country: customer.country,
+        total: orderTotal,
+        payment_method: customer.payment,
+        payment_status: "Non payé",
+        order_status: "En attente"
+      })
+      .select("id")
+      .single();
+
+    if (orderError) throw new Error("Enregistrement de la commande impossible : " + orderError.message);
+
+    // Enregistrer les articles en reliant chaque ligne à la commande créée.
+    const itemsToInsert = orderItems.map(item => ({
+      ...item,
+      order_id: savedOrder.id
+    }));
+    const { error: itemsError } = await client
+      .from("order_items")
+      .insert(itemsToInsert);
+
+    if (itemsError) {
+      console.error("Commande créée, mais articles non enregistrés :", itemsError);
+      throw new Error("La commande a été créée, mais ses articles n'ont pas pu être enregistrés : " + itemsError.message);
+    }
+
+    const lines = cart.map(item => `- ${item.name} x${item.qty} : ${money(item.price * item.qty)}`).join("\\n");
+    const message = [
+      "Bonjour Samira ! Je souhaite confirmer cette commande sur SAMIRA Beauty.",
+      `Référence : ${orderReference}`,
+      `Nom : ${customer.name || ""}`,
+      `Téléphone : ${customer.phone || ""}`,
+      `E-mail : ${customer.email || ""}`,
+      `Livraison : ${customer.address || ""}, ${customer.country || ""}`,
+      `Paiement choisi : ${customer.payment || ""}`,
+      "Articles :",
+      lines,
+      `Total provisoire : ${money(orderTotal)}`,
+      "Merci de me confirmer la disponibilité et les modalités de paiement. Aucun paiement n'a encore été effectué."
+    ].join("\\n");
+    const whatsappUrl = `https://wa.me/24107877070?text=${encodeURIComponent(message)}`;
+
+    if (whatsappWindow) {
+      whatsappWindow.location.href = whatsappUrl;
+    }
+
+    $("#checkoutModal").classList.add("hidden");
+    $("#confirmationText").textContent = whatsappWindow
+      ? `Votre commande est enregistrée dans la base de données. Référence : ${orderReference}. WhatsApp s'est ouvert avec le récapitulatif : appuyez sur Envoyer pour transmettre votre commande à Samira.`
+      : `Votre commande est enregistrée dans la base de données. Référence : ${orderReference}. La fenêtre WhatsApp a été bloquée par le navigateur ; vous pourrez contacter Samira séparément.`;
+    $("#confirmationModal").classList.remove("hidden");
+    cart = [];
+    saveCart();
+    e.currentTarget.reset();
+  } catch (error) {
+    console.error("Erreur lors de la création de la commande :", error);
+    if (whatsappWindow) whatsappWindow.close();
+    showToast(error.message || "La commande n'a pas pu être enregistrée. Réessayez.");
+  } finally {
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = originalButtonText;
+    }
+  }
 };
 $("#finishOrder").onclick = () => $("#confirmationModal").classList.add("hidden");
 $("#newsletterForm").onsubmit = e => {
