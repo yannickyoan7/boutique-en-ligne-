@@ -143,6 +143,41 @@ data.forEach(order => {
   `;
 
   statusSelect.value = order.order_status || "pending";
+  
+  const paymentSelect = document.createElement("select");
+
+  paymentSelect.innerHTML = `
+    <option value="pending">Paiement en attente</option>
+    <option value="paid">Paiement reçu</option>
+    <option value="failed">Paiement refusé</option>
+  `;
+
+  paymentSelect.value = order.payment_status || "pending";
+
+  const paymentButton = document.createElement("button");
+  paymentButton.textContent = "Enregistrer paiement";
+
+  paymentButton.addEventListener("click", async () => {
+    paymentButton.disabled = true;
+
+    const { error } = await supabaseClient
+      .from("orders")
+      .update({ payment_status: paymentSelect.value })
+      .eq("id", order.id);
+
+    if (error) {
+      alert("Erreur paiement : " + error.message);
+      paymentButton.disabled = false;
+      return;
+    }
+
+    alert("Statut du paiement mis à jour !");
+    loadOrders();
+  });
+
+  actionCell.appendChild(paymentSelect);
+  actionCell.appendChild(paymentButton);
+
 
   const updateButton = document.createElement("button");
   updateButton.textContent = "Enregistrer";
