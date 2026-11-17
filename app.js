@@ -303,9 +303,11 @@ whatsappLink.href = whatsappUrl;
 whatsappLink.classList.remove("hidden");
 
 
-  $("#checkoutModal").classList.add("hidden");
+ $("#checkoutModal").classList.add("hidden");
+
 $("#confirmationText").textContent =
-  `Merci pour votre commande ! Votre commande est enregistrée dans notre base de données. Votre numéro de référence est : ${orderReference}. WhatsApp n'a pas encore été ouvert.`;
+  `Merci pour votre commande ! Votre commande est enregistrée. Votre numéro de référence est : ${orderReference}. Cliquez ci-dessous pour envoyer votre commande à Samira sur WhatsApp.`;
+
 $("#confirmationModal").classList.remove("hidden");
     cart = [];
     saveCart();
