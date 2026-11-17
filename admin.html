@@ -1,1 +1,91 @@
 
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration - SAMIRA</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f3ef;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .login {
+      background: white;
+      padding: 35px;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 380px;
+      box-shadow: 0 4px 20px #0001;
+    }
+    h1 { text-align: center; color: #8b5e45; }
+    input, button {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 13px;
+      margin-top: 15px;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    input { border: 1px solid #ddd; }
+    button {
+      border: none;
+      background: #8b5e45;
+      color: white;
+      cursor: pointer;
+    }
+    #message { color: #b00020; text-align: center; }
+  </style>
+</head>
+<body>
+  <div class="login">
+    <h1>SAMIRA</h1>
+    <p style="text-align:center">Espace administrateur</p>
+
+    <form id="loginForm">
+      <input type="email" id="email"
+        placeholder="Adresse e-mail" required>
+      <input type="password" id="password"
+        placeholder="Mot de passe" required>
+      <button type="submit">Se connecter</button>
+    </form>
+
+    <p id="message"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    const supabaseClient = window.supabase.createClient(
+      "https://ouksbotecvbpwsgeapzs.supabase.co",
+      "sb_publishable_wfY3c4mTOU85xmIrNyD5_g_tLUbUjlU"
+    );
+
+    document.getElementById("loginForm")
+      .addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById("email").value;
+        const password = document.getElementById("password").value;
+
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
+          email,
+          password
+        });
+
+        if (error) {
+          document.getElementById("message").textContent =
+            "Identifiants incorrects ou accès refusé.";
+          return;
+        }
+
+        window.location.href = "/admin-dashboard.html";
+      });
+  </script>
+</body>
+</html>
+
