@@ -48,6 +48,31 @@
     }
     th { color: #8b5e45; }
     #message { margin: 20px 0; }
+    .stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.stat-card {
+  background: white;
+  padding: 18px;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px #0000000a;
+}
+
+.stat-card h3 {
+  margin: 0 0 10px;
+  color: #8b5e45;
+  font-size: 14px;
+}
+
+.stat-card p {
+  margin: 0;
+  font-size: 25px;
+  font-weight: bold;
+}
   </style>
 </head>
 <body>
@@ -58,6 +83,27 @@
   </header>
 
   <div class="card">
+    <div class="stats">
+  <div class="stat-card">
+    <h3>Total des commandes</h3>
+    <p id="totalOrders">0</p>
+  </div>
+
+  <div class="stat-card">
+    <h3>Chiffre d'affaires encaissé</h3>
+    <p id="revenue">0 FCFA</p>
+  </div>
+
+  <div class="stat-card">
+    <h3>Commandes payées</h3>
+    <p id="paidOrders">0</p>
+  </div>
+
+  <div class="stat-card">
+    <h3>En attente de paiement</h3>
+    <p id="pendingOrders">0</p>
+  </div>
+</div>
     <h2>Mes commandes</h2>
     <p id="message">Chargement des commandes...</p>
 
