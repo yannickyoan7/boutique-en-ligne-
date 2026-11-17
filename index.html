@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f3ed">
+  <meta name="description" content="SAMIRA — Boutique de beauté, soins et cosmétiques.">
+  <title>SAMIRA — Beauty & Skincare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="announcement">SAMIRA BEAUTY — La beauté, à portée de main.</div>
+  <header class="site-header">
+    <a class="brand" href="#" aria-label="SAMIRA accueil">
+      <span class="brand-name">SAMIRA</span><span class="brand-sub">BEAUTY · SKINCARE · WELLNESS</span>
+    </a>
+    <nav class="main-nav" aria-label="Navigation principale">
+      <a href="#shop">Boutique</a><a href="#categories">Catégories</a><a href="#about">Notre univers</a>
+    </nav>
+    <div class="header-actions">
+      <button class="icon-btn" id="searchToggle" aria-label="Rechercher"><span class="search-icon"></span></button>
+      <button class="cart-trigger" id="openCart"><span>Panier</span><span class="cart-count" id="cartCount">0</span></button>
+      <button class="menu-toggle" id="menuToggle" aria-label="Ouvrir le menu">☰</button>
+    </div>
+  </header>
+
+  <section class="search-bar hidden" id="searchBar">
+    <input id="searchInput" type="search" placeholder="Rechercher un soin, un produit…" aria-label="Rechercher un produit">
+    <button class="text-button" id="closeSearch">Fermer</button>
+  </section>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">LE RITUEL QUI VOUS RESSEMBLE</p>
+        <h1>Révélez votre<br><em>éclat naturel.</em></h1>
+        <p class="hero-description">Des essentiels beauté et des soins choisis pour accompagner votre routine, avec douceur et élégance.</p>
+        <a class="primary-button" href="#shop">Découvrir la boutique <span>↗</span></a>
+        <div class="hero-note"><span class="note-line"></span> BEAUTÉ · CONFIANCE · BIEN-ÊTRE</div>
+      </div>
+      <div class="hero-visual">
+        <div class="hero-image"></div>
+        <div class="hero-stamp"><span>YOUR</span><strong>GLOW</strong><span>YOUR RULES</span></div>
+        <div class="hero-caption">Une beauté qui vous appartient.</div>
+      </div>
+    </section>
+
+    <section class="trust-strip">
+      <div><span>✦</span> Sélection beauté</div><div><span>✦</span> Commande en ligne</div><div><span>✦</span> Livraison au Gabon & à l'international</div>
+    </section>
+
+    <section class="category-section section-wrap" id="categories">
+      <div class="section-heading">
+        <div><p class="eyebrow">TROUVEZ VOTRE ESSENTIEL</p><h2>Explorer par catégorie</h2></div>
+        <a class="under-link" href="#shop">Voir toute la boutique ↗</a>
+      </div>
+      <div class="category-grid">
+        <button class="category-card cat-face" data-category="Visage"><span>01 / VISAGE</span><strong>Soins du visage</strong><i>Explorer ↗</i></button>
+        <button class="category-card cat-body" data-category="Corps"><span>02 / CORPS</span><strong>Soins du corps</strong><i>Explorer ↗</i></button>
+        <button class="category-card cat-hair" data-category="Cheveux"><span>03 / CHEVEUX</span><strong>Cheveux</strong><i>Explorer ↗</i></button>
+        <button class="category-card cat-makeup" data-category="Maquillage"><span>04 / BEAUTÉ</span><strong>Maquillage & parfums</strong><i>Explorer ↗</i></button>
+      </div>
+    </section>
+
+    <section class="shop-section section-wrap" id="shop">
+      <div class="section-heading">
+        <div><p class="eyebrow">NOTRE SÉLECTION</p><h2>Les essentiels SAMIRA</h2><p class="muted">Une sélection pour prendre soin de vous, chaque jour.</p></div>
+        <div class="shop-controls">
+          <select id="categoryFilter" aria-label="Filtrer par catégorie">
+            <option value="Toutes">Toutes les catégories</option><option>Visage</option><option>Corps</option><option>Cheveux</option><option>Maquillage</option><option>Parfums</option>
+          </select>
+          <select id="sortFilter" aria-label="Trier les produits"><option value="featured">À la une</option><option value="price-asc">Prix croissant</option><option value="price-desc">Prix décroissant</option></select>
+        </div>
+      </div>
+      <div class="product-grid" id="productGrid"></div>
+      <p class="empty-state hidden" id="emptyState">Aucun produit ne correspond à votre recherche.</p>
+    </section>
+
+    <section class="manifesto" id="about">
+      <div class="manifesto-image"></div>
+      <div class="manifesto-copy"><p class="eyebrow">L'UNIVERS SAMIRA</p><h2>Prendre soin de soi<br>est un <em>art de vivre.</em></h2><p>Nous croyons que chaque routine beauté mérite des produits choisis avec attention. Explorez notre univers et trouvez les essentiels qui vous correspondent.</p><a href="#shop" class="under-link">Découvrir notre sélection ↗</a></div>
+    </section>
+
+    <section class="newsletter">
+      <p class="eyebrow">RESTONS EN CONTACT</p><h2>Une touche de beauté<br>dans votre boîte mail.</h2>
+      <form id="newsletterForm"><input type="email" placeholder="Votre adresse e-mail" required><button type="submit">S'inscrire ↗</button></form>
+      <small>Inscription de démonstration — aucun e-mail ne sera envoyé pour le moment.</small>
+    </section>
+  </main>
+
+  <footer class="site-footer"><a class="brand footer-brand" href="#"><span class="brand-name">SAMIRA</span><span class="brand-sub">BEAUTY · SKINCARE · WELLNESS</span></a><p>La beauté, à portée de main.</p><div class="footer-bottom"><span>© <span id="year"></span> SAMIRA. Tous droits réservés.</span><span>Gabon · Livraison internationale selon destination</span></div></footer>
+
+  <div class="overlay hidden" id="overlay"></div>
+  <aside class="cart-drawer" id="cartDrawer" aria-label="Votre panier" aria-hidden="true">
+    <div class="drawer-head"><div><p class="eyebrow">VOTRE SÉLECTION</p><h2>Mon panier <span id="drawerCount">(0)</span></h2></div><button class="close-btn" id="closeCart" aria-label="Fermer">×</button></div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer"><div class="subtotal"><span>Sous-total</span><strong id="cartSubtotal">0 FCFA</strong></div><p class="shipping-note">Les frais de livraison seront calculés selon votre destination.</p><button class="primary-button full" id="checkoutButton">Passer la commande <span>→</span></button><button class="continue-link" id="continueShopping">Continuer mes achats</button></div>
+  </aside>
+
+  <section class="checkout-modal hidden" id="checkoutModal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+    <button class="close-btn modal-close" id="closeCheckout" aria-label="Fermer">×</button>
+    <p class="eyebrow">DERNIÈRE ÉTAPE</p><h2 id="checkoutTitle">Finaliser ma commande</h2>
+    <p class="muted modal-intro">Renseignez vos informations pour préparer votre commande.</p>
+    <form id="checkoutForm">
+      <div class="form-grid">
+        <label>Nom complet<input name="name" autocomplete="name" required placeholder="Votre nom"></label>
+        <label>E-mail<input name="email" type="email" autocomplete="email" required placeholder="vous@exemple.com"></label>
+        <label>Téléphone<input name="phone" type="tel" autocomplete="tel" required placeholder="+241 …"></label>
+        <label>Pays de livraison<select name="country" id="countrySelect" required><option value="Gabon">Gabon</option><option value="Autre pays">Autre pays</option></select></label>
+        <label class="wide">Adresse de livraison<textarea name="address" rows="2" required placeholder="Ville, quartier, rue et précisions"></textarea></label>
+        <label class="wide">Mode de paiement<select name="payment" id="paymentSelect" required><option value="Airtel Money">Airtel Money</option><option value="Moov Money">Moov Money</option><option value="Paiement international à configurer">Paiement international (à configurer)</option></select></label>
+      </div>
+      <div class="checkout-total"><span>Total provisoire</span><strong id="checkoutTotal">0 FCFA</strong></div>
+      <p class="payment-warning">Version de démonstration : aucun débit Mobile Money n'est effectué. Le paiement réel sera activé après l'ouverture et la configuration du compte marchand.</p>
+      <button class="primary-button full" type="submit">Envoyer ma commande <span>→</span></button>
+    </form>
+  </section>
+
+  <section class="confirmation-modal hidden" id="confirmationModal" role="dialog" aria-modal="true">
+    <div class="success-mark">✓</div><p class="eyebrow">COMMANDE ENREGISTRÉE</p><h2>Merci pour votre commande.</h2><p id="confirmationText">Votre commande a été enregistrée.</p><p class="payment-warning">Votre commande est en attente de configuration et de confirmation du paiement. Aucun paiement n'a été encaissé.</p><button class="primary-button full" id="finishOrder">Retour à la boutique</button>
+  </section>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
