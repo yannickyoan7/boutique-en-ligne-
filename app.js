@@ -232,7 +232,7 @@ $("#checkoutForm").onsubmit = async e => {
 
   // Ouvre une fenêtre pendant le clic utilisateur : certains navigateurs bloquent
   // les fenêtres ouvertes après une requête réseau asynchrone.
-  const whatsappWindow = window.open("about:blank", "_blank");
+  
 
   try {
     const form = new FormData(e.currentTarget);
@@ -299,9 +299,6 @@ $("#checkoutForm").onsubmit = async e => {
     ].join("\\n");
     const whatsappUrl = `https://wa.me/24107877070?text=${encodeURIComponent(message)}`;
 
-    if (whatsappWindow) {
-      whatsappWindow.location.href = whatsappUrl;
-    }
 
     $("#checkoutModal").classList.add("hidden");
     $("#confirmationText").textContent = whatsappWindow
