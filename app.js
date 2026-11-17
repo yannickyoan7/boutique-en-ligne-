@@ -300,17 +300,16 @@ $("#checkoutForm").onsubmit = async e => {
     const whatsappUrl = `https://wa.me/24107877070?text=${encodeURIComponent(message)}`;
 
 
-    $("#checkoutModal").classList.add("hidden");
-    $("#confirmationText").textContent = whatsappWindow
-      ? `Votre commande est enregistrée dans la base de données. Référence : ${orderReference}. WhatsApp s'est ouvert avec le récapitulatif : appuyez sur Envoyer pour transmettre votre commande à Samira.`
-      : `Votre commande est enregistrée dans la base de données. Référence : ${orderReference}. La fenêtre WhatsApp a été bloquée par le navigateur ; vous pourrez contacter Samira séparément.`;
-    $("#confirmationModal").classList.remove("hidden");
+  $("#checkoutModal").classList.add("hidden");
+$("#confirmationText").textContent =
+  `Merci pour votre commande ! Votre commande est enregistrée dans notre base de données. Votre numéro de référence est : ${orderReference}. WhatsApp n'a pas encore été ouvert.`;
+$("#confirmationModal").classList.remove("hidden");
     cart = [];
     saveCart();
     e.currentTarget.reset();
   } catch (error) {
     console.error("Erreur lors de la création de la commande :", error);
-    if (whatsappWindow) whatsappWindow.close();
+    
     showToast(error.message || "La commande n'a pas pu être enregistrée. Réessayez.");
   } finally {
     if (submitButton) {
