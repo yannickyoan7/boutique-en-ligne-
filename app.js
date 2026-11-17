@@ -55,7 +55,23 @@ $("#checkoutForm").onsubmit=e=>{
   e.preventDefault();if(!cart.length)return;
   const form=new FormData(e.currentTarget),order={reference:"SAM-"+Date.now().toString().slice(-8),createdAt:new Date().toISOString(),customer:Object.fromEntries(form.entries()),items:cart.map(({id,name,price,qty})=>({id,name,price,qty})),total:cart.reduce((n,x)=>n+x.price*x.qty,0),status:"En attente de paiement — intégration marchand requise"};
   const orders=JSON.parse(localStorage.getItem("samira_orders")||"[]");orders.push(order);localStorage.setItem("samira_orders",JSON.stringify(orders));
-  $("#checkoutModal").classList.add("hidden");$("#confirmationText").textContent=`Votre référence de commande est ${order.reference}. Un récapitulatif est enregistré sur cet appareil.`;
+  const lines = order.items.map(item => `- ${item.name} x${item.qty} : ${money(item.price * item.qty)}`).join("\\n");
+  const message = [
+    "Bonjour Samira ! Je souhaite confirmer cette commande sur SAMIRA Beauty.",
+    `Référence : ${order.reference}`,
+    `Nom : ${order.customer.name || ""}`,
+    `Téléphone : ${order.customer.phone || ""}`,
+    `E-mail : ${order.customer.email || ""}`,
+    `Livraison : ${order.customer.address || ""}, ${order.customer.country || ""}`,
+    `Paiement choisi : ${order.customer.payment || ""}`,
+    "Articles :",
+    lines,
+    `Total provisoire : ${money(order.total)}`,
+    "Merci de me confirmer la disponibilité et les modalités de paiement. Je comprends qu'aucun paiement n'a encore été effectué."
+  ].join("\\n");
+  const whatsappUrl = `https://wa.me/24107877070?text=${encodeURIComponent(message)}`;
+  window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+  $("#checkoutModal").classList.add("hidden");$("#confirmationText").textContent=`Votre référence est ${order.reference}. WhatsApp s'est ouvert avec le récapitulatif : appuyez sur Envoyer pour transmettre votre commande à Samira. Une copie locale est aussi conservée sur cet appareil.`;
   $("#confirmationModal").classList.remove("hidden");cart=[];saveCart();e.currentTarget.reset();
 };
 $("#finishOrder").onclick=()=>$("#confirmationModal").classList.add("hidden");
