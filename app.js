@@ -246,10 +246,16 @@ $("#checkoutForm").onsubmit = async e => {
       unit_price: Number(price)
     }));
 
-    // Enregistrer d'abord la commande et récupérer son UUID Supabase.
-    const { data: savedOrder, error: orderError } = await client
+    // Générer l'UUID côté navigateur pour ne pas demander au visiteur
+    // de relire la commande (la lecture est réservée à l'administrateur par RLS).
+    const orderId = crypto.randomUUID();
+
+    // Enregistrer la commande sans .select() : un visiteur peut INSERT,
+    // mais ne doit pas pouvoir lire les commandes des autres clients.
+    const { error: orderError } = await client
       .from("orders")
       .insert({
+        id: orderId,
         customer_name: customer.name,
         customer_email: customer.email,
         customer_phone: customer.phone,
@@ -259,16 +265,14 @@ $("#checkoutForm").onsubmit = async e => {
         payment_method: customer.payment,
         payment_status: "Non payé",
         order_status: "En attente"
-      })
-      .select("id")
-      .single();
+      });
 
     if (orderError) throw new Error("Enregistrement de la commande impossible : " + orderError.message);
 
-    // Enregistrer les articles en reliant chaque ligne à la commande créée.
+    // Enregistrer les articles avec le même UUID généré côté navigateur.
     const itemsToInsert = orderItems.map(item => ({
       ...item,
-      order_id: savedOrder.id
+      order_id: orderId
     }));
     const { error: itemsError } = await client
       .from("order_items")
