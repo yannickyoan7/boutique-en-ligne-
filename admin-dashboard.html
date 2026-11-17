@@ -71,6 +71,7 @@
           <th>Paiement</th>
           <th>Statut</th>
           <th>Date</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody id="ordersList"></tbody>
@@ -110,27 +111,67 @@
 
       message.textContent = data.length + " commande(s) trouvée(s).";
 
-      data.forEach(order => {
-        const row = document.createElement("tr");
+     
+data.forEach(order => {
+  const row = document.createElement("tr");
 
-        const values = [
-          order.id,
-          order.customer_name,
-          order.customer_phone,
-          Number(order.total).toLocaleString("fr-FR") + " FCFA",
-          order.payment_status,
-          order.order_status,
-          new Date(order.created_at).toLocaleDateString("fr-FR")
-        ];
+  const values = [
+    order.id,
+    order.customer_name,
+    order.customer_phone,
+    Number(order.total).toLocaleString("fr-FR") + " FCFA",
+    order.payment_status,
+    order.order_status,
+    new Date(order.created_at).toLocaleDateString("fr-FR")
+  ];
 
-        values.forEach(value => {
-          const cell = document.createElement("td");
-          cell.textContent = value ?? "";
-          row.appendChild(cell);
-        });
+  values.forEach(value => {
+    const cell = document.createElement("td");
+    cell.textContent = value ?? "";
+    row.appendChild(cell);
+  });
 
-        ordersList.appendChild(row);
-      });
+  const actionCell = document.createElement("td");
+
+  const statusSelect = document.createElement("select");
+  statusSelect.innerHTML = `
+    <option value="pending">En attente</option>
+    <option value="confirmed">Confirmée</option>
+    <option value="paid">Payée</option>
+    <option value="shipped">Expédiée</option>
+    <option value="delivered">Livrée</option>
+  `;
+
+  statusSelect.value = order.order_status || "pending";
+
+  const updateButton = document.createElement("button");
+  updateButton.textContent = "Enregistrer";
+
+  updateButton.addEventListener("click", async () => {
+    updateButton.disabled = true;
+
+    const { error } = await supabaseClient
+      .from("orders")
+      .update({ order_status: statusSelect.value })
+      .eq("id", order.id);
+
+    if (error) {
+      alert("Erreur : " + error.message);
+      updateButton.disabled = false;
+      return;
+    }
+
+    alert("Statut de la commande mis à jour !");
+    loadOrders();
+  });
+
+  actionCell.appendChild(statusSelect);
+  actionCell.appendChild(updateButton);
+  row.appendChild(actionCell);
+
+  ordersList.appendChild(row);
+});
+
     }
 
     document.getElementById("logout")
