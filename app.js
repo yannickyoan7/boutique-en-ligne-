@@ -298,6 +298,9 @@ $("#checkoutForm").onsubmit = async e => {
       "Merci de me confirmer la disponibilité et les modalités de paiement. Aucun paiement n'a encore été effectué."
     ].join("\\n");
     const whatsappUrl = `https://wa.me/24107877070?text=${encodeURIComponent(message)}`;
+    const whatsappLink = $("#whatsappOrderLink");
+whatsappLink.href = whatsappUrl;
+whatsappLink.classList.remove("hidden");
 
 
   $("#checkoutModal").classList.add("hidden");
