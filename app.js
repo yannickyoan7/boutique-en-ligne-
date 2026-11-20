@@ -263,8 +263,8 @@ $("#checkoutForm").onsubmit = async e => {
         delivery_country: customer.country,
         total: orderTotal,
         payment_method: customer.payment,
-        payment_status: "Non payé",
-        order_status: "En attente"
+        payment_status: "pending",
+        order_status: "pending"
       });
 
     if (orderError) throw new Error("Enregistrement de la commande impossible : " + orderError.message);
