@@ -214,6 +214,24 @@
 
     td:last-child button:last-child { margin-bottom: 0; }
 
+
+    .admin-tabs{display:flex;gap:10px;margin:0 0 18px;flex-wrap:wrap}
+    .admin-tabs button{background:#fff;color:var(--brand-dark);border:1px solid #e6d8ce}
+    .admin-tabs button.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+    .panel-hidden{display:none!important}
+    .product-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin:18px 0 24px}
+    .product-form label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:var(--muted)}
+    .product-form input,.product-form textarea,.product-form select{width:100%;min-width:0;padding:11px;border:1px solid #e5dcd5;border-radius:8px;font:inherit;color:var(--text);background:#fff}
+    .product-form .wide{grid-column:1/-1}
+    .product-form-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;grid-column:1/-1}
+    .product-preview{width:58px;height:58px;object-fit:cover;border-radius:8px;background:#f2e7df}
+    .product-actions{display:flex;gap:7px;flex-wrap:wrap}
+    .product-actions button{width:auto!important;margin:0!important}
+    .secondary-button{background:#fff;color:var(--brand-dark);border:1px solid #e6d8ce}
+    .danger-button{background:#9b3d32}
+    #productsMessage{margin:8px 0 14px;color:var(--muted);font-size:13px}
+    @media(max-width:600px){.product-form{grid-template-columns:1fr}.product-form .wide{grid-column:auto}.product-form-actions{grid-column:auto}}
+
     @media (max-width: 1000px) {
       body { padding: 20px; }
       .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -241,7 +259,12 @@
       <button id="logout">Déconnexion</button>
     </header>
 
-    <div class="card">
+
+    <nav class="admin-tabs" aria-label="Sections administration">
+      <button type="button" class="active" id="ordersTab">Mes commandes</button>
+      <button type="button" id="productsTab">Gestion des produits</button>
+    </nav>
+    <div class="card" id="ordersPanel">
       <div class="stats">
         <div class="stat-card">
           <h3>Total des commandes</h3>
@@ -285,6 +308,33 @@
         <tbody id="ordersList"></tbody>
       </table>
     </div>
+
+    <section class="card panel-hidden" id="productsPanel">
+      <div class="section-heading">
+        <h2>Gestion des produits</h2>
+        <button type="button" id="newProductButton">Ajouter un produit</button>
+      </div>
+      <p id="productsMessage">Chargement des produits...</p>
+      <form id="productForm" class="product-form">
+        <input type="hidden" id="productId">
+        <label>Nom du produit<input id="productName" required maxlength="160" placeholder="Nom du produit"></label>
+        <label>Prix (FCFA)<input id="productPrice" type="number" min="0" step="1" required placeholder="Ex. 15000"></label>
+        <label>Catégorie<input id="productCategory" maxlength="80" placeholder="Ex. Visage, Corps, Cheveux"></label>
+        <label>Stock<input id="productStock" type="number" min="0" step="1" placeholder="Quantité disponible"></label>
+        <label class="wide">Description<textarea id="productDescription" rows="3" placeholder="Description du produit"></textarea></label>
+        <label class="wide">Photo du produit<input id="productImage" type="file" accept="image/*"><small>PNG, JPG, WEBP… Laissez vide pour conserver la photo actuelle lors d'une modification.</small></label>
+        <div class="product-form-actions">
+          <button type="submit" id="saveProductButton">Enregistrer le produit</button>
+          <button type="button" class="secondary-button" id="cancelProductButton">Annuler</button>
+        </div>
+      </form>
+      <div style="overflow-x:auto">
+        <table style="min-width:760px">
+          <thead><tr><th>Photo</th><th>Produit</th><th>Catégorie</th><th>Prix</th><th>Stock</th><th>Actions</th></tr></thead>
+          <tbody id="productsList"></tbody>
+        </table>
+      </div>
+    </section>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -497,6 +547,145 @@
         ordersList.appendChild(row);
       });
     }
+
+
+    const productsMessage = document.getElementById("productsMessage");
+    const productForm = document.getElementById("productForm");
+    const productsList = document.getElementById("productsList");
+
+    function showAdminTab(tab) {
+      const showProducts = tab === "products";
+      document.getElementById("ordersPanel").classList.toggle("panel-hidden", showProducts);
+      document.getElementById("productsPanel").classList.toggle("panel-hidden", !showProducts);
+      document.getElementById("ordersTab").classList.toggle("active", !showProducts);
+      document.getElementById("productsTab").classList.toggle("active", showProducts);
+      if (showProducts) loadProducts();
+    }
+    document.getElementById("ordersTab").addEventListener("click", () => showAdminTab("orders"));
+    document.getElementById("productsTab").addEventListener("click", () => showAdminTab("products"));
+    document.getElementById("newProductButton").addEventListener("click", () => {
+      productForm.reset();
+      document.getElementById("productId").value = "";
+      document.getElementById("saveProductButton").textContent = "Enregistrer le produit";
+      document.getElementById("productName").focus();
+    });
+    document.getElementById("cancelProductButton").addEventListener("click", () => {
+      productForm.reset();
+      document.getElementById("productId").value = "";
+      document.getElementById("saveProductButton").textContent = "Enregistrer le produit";
+    });
+
+    async function loadProducts() {
+      productsMessage.textContent = "Chargement des produits...";
+      const { data, error } = await supabaseClient
+        .from("products")
+        .select("id, name, price, description, image_url, category, stock, created_at")
+        .order("created_at", { ascending: false });
+      if (error) {
+        productsMessage.textContent = "Impossible de charger les produits : " + error.message;
+        return;
+      }
+      productsMessage.textContent = data.length + " produit(s) trouvé(s).";
+      productsList.innerHTML = "";
+      data.forEach(product => {
+        const row = document.createElement("tr");
+        const photoCell = document.createElement("td");
+        if (product.image_url) {
+          const img = document.createElement("img");
+          img.src = product.image_url;
+          img.alt = product.name || "Photo du produit";
+          img.className = "product-preview";
+          photoCell.appendChild(img);
+        } else {
+          photoCell.textContent = "Sans photo";
+        }
+        row.appendChild(photoCell);
+        [product.name, product.category || "—", Number(product.price || 0).toLocaleString("fr-FR") + " FCFA", product.stock ?? "—"].forEach(value => {
+          const cell = document.createElement("td");
+          cell.textContent = value;
+          row.appendChild(cell);
+        });
+        const actions = document.createElement("td");
+        actions.className = "product-actions";
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.textContent = "Modifier";
+        edit.addEventListener("click", () => {
+          document.getElementById("productId").value = product.id;
+          document.getElementById("productName").value = product.name || "";
+          document.getElementById("productPrice").value = product.price ?? "";
+          document.getElementById("productCategory").value = product.category || "";
+          document.getElementById("productStock").value = product.stock ?? "";
+          document.getElementById("productDescription").value = product.description || "";
+          document.getElementById("productImage").value = "";
+          document.getElementById("saveProductButton").textContent = "Enregistrer les modifications";
+          productForm.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.textContent = "Supprimer";
+        remove.className = "danger-button";
+        remove.addEventListener("click", async () => {
+          if (!confirm("Supprimer le produit « " + product.name + " » ? Cette action est définitive.")) return;
+          remove.disabled = true;
+          const { error: deleteError } = await supabaseClient.from("products").delete().eq("id", product.id);
+          if (deleteError) {
+            alert("Impossible de supprimer le produit : " + deleteError.message);
+            remove.disabled = false;
+            return;
+          }
+          productsMessage.textContent = "Produit supprimé.";
+          await loadProducts();
+        });
+        actions.append(edit, remove);
+        row.appendChild(actions);
+        productsList.appendChild(row);
+      });
+    }
+
+    productForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const saveButton = document.getElementById("saveProductButton");
+      saveButton.disabled = true;
+      productsMessage.textContent = "Enregistrement du produit...";
+      try {
+        const id = document.getElementById("productId").value;
+        const name = document.getElementById("productName").value.trim();
+        const price = Number(document.getElementById("productPrice").value);
+        const category = document.getElementById("productCategory").value.trim();
+        const stockValue = document.getElementById("productStock").value;
+        const description = document.getElementById("productDescription").value.trim();
+        if (!name || !Number.isFinite(price) || price < 0) throw new Error("Vérifie le nom et le prix du produit.");
+        const values = { name, price, category: category || null, stock: stockValue === "" ? null : Number(stockValue), description };
+        const imageFile = document.getElementById("productImage").files[0];
+        if (imageFile) {
+          if (!imageFile.type.startsWith("image/")) throw new Error("Le fichier choisi doit être une image.");
+          const safeName = imageFile.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "-");
+          const imagePath = Date.now() + "-" + safeName;
+          const { error: uploadError } = await supabaseClient.storage.from("product-images").upload(imagePath, imageFile, { upsert: false, contentType: imageFile.type });
+          if (uploadError) throw new Error("Échec de l'envoi de la photo : " + uploadError.message);
+          const { data: publicUrlData } = supabaseClient.storage.from("product-images").getPublicUrl(imagePath);
+          values.image_url = publicUrlData.publicUrl;
+        }
+        let result;
+        if (id) {
+          result = await supabaseClient.from("products").update(values).eq("id", id).select("id").maybeSingle();
+        } else {
+          result = await supabaseClient.from("products").insert(values).select("id").maybeSingle();
+        }
+        if (result.error) throw result.error;
+        if (!result.data) throw new Error("Aucune modification enregistrée. Vérifie les Policies de la table products.");
+        productForm.reset();
+        document.getElementById("productId").value = "";
+        saveButton.textContent = "Enregistrer le produit";
+        productsMessage.textContent = id ? "Produit modifié avec succès." : "Produit ajouté avec succès.";
+        await loadProducts();
+      } catch (error) {
+        productsMessage.textContent = "Erreur : " + (error.message || String(error));
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
 
     document.getElementById("logout")
       .addEventListener("click", async () => {
