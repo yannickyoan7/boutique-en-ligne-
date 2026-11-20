@@ -393,7 +393,11 @@
 
           const { error } = await supabaseClient
             .from("orders")
-            .update({ payment_status: paymentSelect.value })
+            .update(
+              paymentSelect.value === "paid"
+                ? { payment_status: "paid", order_status: "confirmed" }
+                : { payment_status: paymentSelect.value }
+            )
             .eq("id", order.id);
 
           if (error) {
@@ -402,7 +406,11 @@
             return;
           }
 
-          alert("Statut du paiement mis à jour !");
+          alert(
+            paymentSelect.value === "paid"
+              ? "Paiement enregistré et commande automatiquement confirmée !"
+              : "Statut du paiement mis à jour !"
+          );
           loadOrders();
         });
 
@@ -410,7 +418,7 @@
         actionCell.appendChild(paymentButton);
 
         const updateButton = document.createElement("button");
-        updateButton.textContent = "Enregistrer";
+        updateButton.textContent = "Enregistrer la commande";
 
         updateButton.addEventListener("click", async () => {
           updateButton.disabled = true;
