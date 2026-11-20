@@ -323,16 +323,42 @@
       // Calcul des statistiques
       const totalOrders = data.length;
 
+      // Normaliser les anciens statuts français et les nouveaux statuts anglais.
+      // Cela permet de compter correctement les commandes déjà enregistrées.
+      const normalizePaymentStatus = value => {
+        const status = String(value ?? "").trim().toLowerCase();
+        if (["pending", "non payé", "non paye", "unpaid", "en attente"].includes(status)) return "pending";
+        if (["paid", "payé", "paye", "payée", "payee"].includes(status)) return "paid";
+        if (["failed", "refused", "refusé", "refuse", "paiement refusé"].includes(status)) return "failed";
+        return status;
+      };
+
+      const normalizeOrderStatus = value => {
+        const status = String(value ?? "").trim().toLowerCase();
+        const aliases = {
+          "en attente": "pending",
+          "confirmée": "confirmed",
+          "confirmee": "confirmed",
+          "payée": "paid",
+          "payee": "paid",
+          "expédiée": "shipped",
+          "expediee": "shipped",
+          "livrée": "delivered",
+          "livree": "delivered"
+        };
+        return aliases[status] || status;
+      };
+
       const paidOrders = data.filter(
-        order => order.payment_status === "paid"
+        order => normalizePaymentStatus(order.payment_status) === "paid"
       ).length;
 
       const pendingOrders = data.filter(
-        order => order.payment_status === "pending"
+        order => normalizePaymentStatus(order.payment_status) === "pending"
       ).length;
 
       const revenue = data
-        .filter(order => order.payment_status === "paid")
+        .filter(order => normalizePaymentStatus(order.payment_status) === "paid")
         .reduce((sum, order) => sum + Number(order.total || 0), 0);
 
       // Affichage des statistiques
@@ -374,7 +400,7 @@
           <option value="delivered">Livrée</option>
         `;
 
-        statusSelect.value = order.order_status || "pending";
+        statusSelect.value = normalizeOrderStatus(order.order_status) || "pending";
 
         const paymentSelect = document.createElement("select");
         paymentSelect.innerHTML = `
@@ -383,7 +409,7 @@
           <option value="failed">Paiement refusé</option>
         `;
 
-        paymentSelect.value = order.payment_status || "pending";
+        paymentSelect.value = normalizePaymentStatus(order.payment_status) || "pending";
 
         const paymentButton = document.createElement("button");
         paymentButton.textContent = "Enregistrer paiement";
