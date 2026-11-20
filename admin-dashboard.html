@@ -391,27 +391,40 @@
         paymentButton.addEventListener("click", async () => {
           paymentButton.disabled = true;
 
-          const { error } = await supabaseClient
-            .from("orders")
-            .update(
-              paymentSelect.value === "paid"
-                ? { payment_status: "paid", order_status: "confirmed" }
-                : { payment_status: paymentSelect.value }
-            )
-            .eq("id", order.id);
+          try {
+            const updateValues = paymentSelect.value === "paid"
+              ? { payment_status: "paid", order_status: "confirmed" }
+              : { payment_status: paymentSelect.value };
 
-          if (error) {
-            alert("Erreur paiement : " + error.message);
+            const { data: updatedOrder, error } = await supabaseClient
+              .from("orders")
+              .update(updateValues)
+              .eq("id", order.id)
+              .select("id, payment_status, order_status")
+              .maybeSingle();
+
+            if (error) {
+              alert("Erreur paiement : " + error.message);
+              paymentButton.disabled = false;
+              return;
+            }
+
+            if (!updatedOrder) {
+              alert("Aucune commande n'a été modifiée. Vérifie les autorisations UPDATE (RLS) de la table orders dans Supabase.");
+              paymentButton.disabled = false;
+              return;
+            }
+
+            alert(
+              updatedOrder.payment_status === "paid"
+                ? "Paiement enregistré et commande automatiquement confirmée !"
+                : "Statut du paiement mis à jour !"
+            );
+            await loadOrders();
+          } catch (err) {
+            alert("Erreur inattendue : " + err.message);
             paymentButton.disabled = false;
-            return;
           }
-
-          alert(
-            paymentSelect.value === "paid"
-              ? "Paiement enregistré et commande automatiquement confirmée !"
-              : "Statut du paiement mis à jour !"
-          );
-          loadOrders();
         });
 
         actionCell.appendChild(paymentSelect);
@@ -423,19 +436,32 @@
         updateButton.addEventListener("click", async () => {
           updateButton.disabled = true;
 
-          const { error } = await supabaseClient
-            .from("orders")
-            .update({ order_status: statusSelect.value })
-            .eq("id", order.id);
+          try {
+            const { data: updatedOrder, error } = await supabaseClient
+              .from("orders")
+              .update({ order_status: statusSelect.value })
+              .eq("id", order.id)
+              .select("id, order_status")
+              .maybeSingle();
 
-          if (error) {
-            alert("Erreur : " + error.message);
+            if (error) {
+              alert("Erreur : " + error.message);
+              updateButton.disabled = false;
+              return;
+            }
+
+            if (!updatedOrder) {
+              alert("Aucune commande n'a été modifiée. Vérifie les autorisations UPDATE (RLS) de la table orders dans Supabase.");
+              updateButton.disabled = false;
+              return;
+            }
+
+            alert("Statut de la commande enregistré : " + updatedOrder.order_status);
+            await loadOrders();
+          } catch (err) {
+            alert("Erreur inattendue : " + err.message);
             updateButton.disabled = false;
-            return;
           }
-
-          alert("Statut de la commande mis à jour !");
-          loadOrders();
         });
 
         actionCell.appendChild(statusSelect);
